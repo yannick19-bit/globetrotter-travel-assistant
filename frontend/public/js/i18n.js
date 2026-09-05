@@ -1,0 +1,242 @@
+export const translations = {
+  en: {
+    brand_tag: 'GT-01',
+    nav_explore: 'Explore',
+    nav_trips: 'My trips',
+    nav_login: 'Log in',
+    nav_register: 'Sign up',
+    nav_logout: 'Log out',
+    settings_title: 'Connection settings',
+    settings_api_label: 'Gateway URL',
+    settings_api_hint: 'Point this at your local gateway or your deployed Cloud Run URL.',
+    settings_status_checking: 'Checking…',
+    settings_status_ok: 'Connected',
+    settings_status_bad: 'Unreachable',
+    settings_save: 'Save',
+    settings_close: 'Close',
+
+    hero_eyebrow: 'Departures · Worldwide',
+    hero_title: 'Where to?',
+    hero_sub: 'Search the catalog, compare destinations, and build your route stop by stop.',
+
+    search_placeholder: 'Search a destination, country, or vibe…',
+    filter_all: 'All',
+    cat_beach: 'Beach',
+    cat_mountain: 'Mountain',
+    cat_city: 'City',
+    cat_culture: 'Culture',
+    cat_adventure: 'Adventure',
+    cat_relaxation: 'Relaxation',
+    budget_budget: 'Budget',
+    budget_moderate: 'Moderate',
+    budget_luxury: 'Luxury',
+
+    add_to_trip: 'Add to trip',
+    added: 'Added',
+    popularity: 'Popularity',
+    no_destinations: 'No destinations match these filters',
+    no_destinations_hint: 'Try clearing a filter or searching a different term.',
+
+    cart_label: 'stops selected',
+    cart_build: 'Build itinerary',
+    cart_clear: 'Clear',
+
+    new_trip_title: 'New itinerary',
+    field_title: 'Title',
+    field_title_ph: 'e.g. Summer escape',
+    field_start: 'Start date',
+    field_end: 'End date',
+    field_stops: 'Stops',
+    modal_cancel: 'Cancel',
+    modal_create: 'Create itinerary',
+
+    trips_title: 'Your itineraries',
+    trips_sub: 'Everything you have built and everything shared with you.',
+    trip_new_btn: '+ New itinerary',
+    no_trips: 'No itineraries yet',
+    no_trips_hint: 'Explore destinations and build your first route.',
+    no_trips_cta: 'Explore destinations',
+    stops_count: 'stops',
+    created: 'Created',
+    view: 'View',
+    delete: 'Delete',
+    delete_confirm: 'Delete this itinerary? This cannot be undone.',
+
+    status_draft: 'Draft',
+    status_confirmed: 'Confirmed',
+    status_completed: 'Completed',
+    status_cancelled: 'Cancelled',
+
+    trip_detail_back: 'Back to itineraries',
+    trip_detail_route: 'Route',
+    trip_detail_status_label: 'Status',
+    trip_detail_share: 'Share',
+    trip_detail_edit: 'Edit',
+    trip_detail_stops: 'Stops',
+    trip_detail_no_stops: 'No stops added',
+
+    share_title: 'Share itinerary',
+    share_hint: 'Enter the numeric ID of the account to share with.',
+    field_user_id: 'User ID',
+    field_permission: 'Permission',
+    perm_view: 'Can view',
+    perm_edit: 'Can edit',
+    share_submit: 'Share',
+    share_success: 'Itinerary shared',
+
+    edit_title: 'Edit itinerary',
+    field_status: 'Status',
+    save_changes: 'Save changes',
+
+    auth_login_eyebrow: 'Check-in',
+    auth_login_title: 'Log in',
+    auth_register_eyebrow: 'New passport',
+    auth_register_title: 'Create account',
+    field_full_name: 'Full name',
+    field_email: 'Email',
+    field_password: 'Password',
+    field_password_hint: 'At least 6 characters',
+    login_submit: 'Log in',
+    register_submit: 'Create account',
+    login_switch: "Don't have an account?",
+    login_switch_link: 'Sign up',
+    register_switch: 'Already have an account?',
+    register_switch_link: 'Log in',
+
+    err_network: 'Could not reach the gateway. Check the connection settings.',
+    err_generic: 'Something went wrong. Please try again.',
+    err_required: 'Please fill in all required fields.',
+    err_login_required: 'Log in to do this.',
+
+    loading: 'Loading…',
+    footer_text: 'GlobeTrotter Travel Assistant — distributed systems project',
+  },
+  fr: {
+    brand_tag: 'GT-01',
+    nav_explore: 'Explorer',
+    nav_trips: 'Mes voyages',
+    nav_login: 'Connexion',
+    nav_register: 'Inscription',
+    nav_logout: 'Déconnexion',
+    settings_title: 'Paramètres de connexion',
+    settings_api_label: 'URL de la passerelle',
+    settings_api_hint: 'Pointe vers ta passerelle locale ou ton URL Cloud Run déployée.',
+    settings_status_checking: 'Vérification…',
+    settings_status_ok: 'Connecté',
+    settings_status_bad: 'Injoignable',
+    settings_save: 'Enregistrer',
+    settings_close: 'Fermer',
+
+    hero_eyebrow: 'Départs · Monde entier',
+    hero_title: 'Où va-t-on ?',
+    hero_sub: 'Explore le catalogue, compare les destinations et construis ton itinéraire étape par étape.',
+
+    search_placeholder: 'Cherche une destination, un pays, une ambiance…',
+    filter_all: 'Tout',
+    cat_beach: 'Plage',
+    cat_mountain: 'Montagne',
+    cat_city: 'Ville',
+    cat_culture: 'Culture',
+    cat_adventure: 'Aventure',
+    cat_relaxation: 'Détente',
+    budget_budget: 'Économique',
+    budget_moderate: 'Modéré',
+    budget_luxury: 'Luxe',
+
+    add_to_trip: 'Ajouter au voyage',
+    added: 'Ajoutée',
+    popularity: 'Popularité',
+    no_destinations: 'Aucune destination ne correspond',
+    no_destinations_hint: 'Essaie de retirer un filtre ou une autre recherche.',
+
+    cart_label: 'étapes sélectionnées',
+    cart_build: "Créer l'itinéraire",
+    cart_clear: 'Vider',
+
+    new_trip_title: 'Nouvel itinéraire',
+    field_title: 'Titre',
+    field_title_ph: 'ex. Escapade d\'été',
+    field_start: 'Date de départ',
+    field_end: 'Date de retour',
+    field_stops: 'Étapes',
+    modal_cancel: 'Annuler',
+    modal_create: "Créer l'itinéraire",
+
+    trips_title: 'Tes itinéraires',
+    trips_sub: 'Tout ce que tu as créé et tout ce qui est partagé avec toi.',
+    trip_new_btn: '+ Nouvel itinéraire',
+    no_trips: 'Aucun itinéraire pour le moment',
+    no_trips_hint: 'Explore les destinations et construis ton premier itinéraire.',
+    no_trips_cta: 'Explorer les destinations',
+    stops_count: 'étapes',
+    created: 'Créé le',
+    view: 'Voir',
+    delete: 'Supprimer',
+    delete_confirm: 'Supprimer cet itinéraire ? Cette action est irréversible.',
+
+    status_draft: 'Brouillon',
+    status_confirmed: 'Confirmé',
+    status_completed: 'Terminé',
+    status_cancelled: 'Annulé',
+
+    trip_detail_back: 'Retour aux itinéraires',
+    trip_detail_route: 'Itinéraire',
+    trip_detail_status_label: 'Statut',
+    trip_detail_share: 'Partager',
+    trip_detail_edit: 'Modifier',
+    trip_detail_stops: 'Étapes',
+    trip_detail_no_stops: 'Aucune étape ajoutée',
+
+    share_title: "Partager l'itinéraire",
+    share_hint: "Entre l'identifiant numérique du compte avec qui partager.",
+    field_user_id: 'ID utilisateur',
+    field_permission: 'Permission',
+    perm_view: 'Peut voir',
+    perm_edit: 'Peut modifier',
+    share_submit: 'Partager',
+    share_success: 'Itinéraire partagé',
+
+    edit_title: "Modifier l'itinéraire",
+    field_status: 'Statut',
+    save_changes: 'Enregistrer',
+
+    auth_login_eyebrow: 'Enregistrement',
+    auth_login_title: 'Connexion',
+    auth_register_eyebrow: 'Nouveau passeport',
+    auth_register_title: 'Créer un compte',
+    field_full_name: 'Nom complet',
+    field_email: 'Email',
+    field_password: 'Mot de passe',
+    field_password_hint: '6 caractères minimum',
+    login_submit: 'Se connecter',
+    register_submit: 'Créer le compte',
+    login_switch: 'Pas encore de compte ?',
+    login_switch_link: "S'inscrire",
+    register_switch: 'Déjà un compte ?',
+    register_switch_link: 'Se connecter',
+
+    err_network: 'Impossible de joindre la passerelle. Vérifie les paramètres de connexion.',
+    err_generic: "Une erreur est survenue. Réessaie.",
+    err_required: 'Merci de remplir tous les champs requis.',
+    err_login_required: 'Connecte-toi pour faire ça.',
+
+    loading: 'Chargement…',
+    footer_text: 'GlobeTrotter Travel Assistant — projet systèmes distribués',
+  }
+};
+
+const LANG_KEY = 'gt_lang';
+
+export function getLang() {
+  return localStorage.getItem(LANG_KEY) || 'en';
+}
+
+export function setLang(lang) {
+  localStorage.setItem(LANG_KEY, lang);
+  document.documentElement.setAttribute('lang', lang);
+}
+
+export function t(key) {
+  const lang = getLang();
+  return (translations[lang] && translations[lang][key]) || translations.en[key] || key;
+}
