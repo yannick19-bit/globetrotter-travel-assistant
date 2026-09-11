@@ -3,7 +3,10 @@ const TOKEN_KEY = 'gt_token';
 const USER_KEY = 'gt_user';
 
 export function getApiBase() {
-  return localStorage.getItem(API_BASE_KEY) || 'http://localhost:3000';
+  // nginx (port 8000) fait office de point d'entrée public et redistribue
+  // vers api-gateway en interne. api-gateway lui-même n'est pas exposé
+  // directement sur la machine hôte (pas de "ports:" dans docker-compose.yml).
+  return localStorage.getItem(API_BASE_KEY) || 'http://localhost:8000';
 }
 
 export function setApiBase(url) {
@@ -66,6 +69,28 @@ async function request(path, { method = 'GET', body, auth = false } = {}) {
   return data;
 }
 
+async function requestMultipart(path, formData, { method = 'POST' } = {}) {
+  const headers = {};
+  const token = getToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  // Pas de Content-Type ici : le navigateur doit fixer lui-même le boundary multipart.
+
+  let res;
+  try {
+    res = await fetch(`${getApiBase()}${path}`, { method, headers, body: formData });
+  } catch (e) {
+    throw new ApiError('network', 0);
+  }
+
+  let data = null;
+  try { data = await res.json(); } catch { /* empty body */ }
+
+  if (!res.ok) {
+    throw new ApiError((data && data.error) || 'generic', res.status);
+  }
+  return data;
+}
+
 export const api = {
   health: () => request('/health'),
 
@@ -83,6 +108,17 @@ export const api = {
   },
 
   getDestination: (id) => request(`/api/destinations/${id}`),
+
+  uploadDestinationMedia: (id, category, file, caption) => {
+    const fd = new FormData();
+    fd.append('category', category);
+    if (caption) fd.append('caption', caption);
+    fd.append('file', file);
+    return requestMultipart(`/api/destinations/${id}/media`, fd);
+  },
+
+  deleteDestinationMedia: (id, mediaId) =>
+    request(`/api/destinations/${id}/media/${mediaId}`, { method: 'DELETE', auth: true }),
 
   listItineraries: () => request('/api/itineraries', { auth: true }),
 

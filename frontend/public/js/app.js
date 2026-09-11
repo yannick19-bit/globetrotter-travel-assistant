@@ -24,6 +24,43 @@ function codeFor(name) {
   return (name || '???').replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase() || '???';
 }
 
+function destinationFolderFor(dest) {
+  const text = `${dest.name || ''} ${dest.country || ''}`.toLowerCase();
+  if (/bali/.test(text)) return 'bali';
+  if (/bangkok/.test(text)) return 'bangkok';
+  if (/costa rica|costa-rica/.test(text)) return 'costa rica';
+  if (/kyoto/.test(text)) return 'kyoto';
+  if (/machu picchu|machu-picchu|machu/.test(text)) return 'machu picchu';
+  if (/maldives/.test(text)) return 'maldives';
+  if (/marrakech/.test(text)) return 'marrakech';
+  if (/paris/.test(text)) return 'paris';
+  if (/santorini/.test(text)) return 'santorini';
+  if (/swiss alps|swiss-alps|alps/.test(text)) return 'swiss alps';
+  return null;
+}
+
+async function fetchFolderImages(folder) {
+  if (!folder) return [];
+  try {
+    const resp = await fetch(`/api/images/${encodeURIComponent(folder)}`);
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    return Array.isArray(data.images) ? data.images : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function escapeHtmlUrl(path) {
+  return path.replace(/\(/g, '%28').replace(/\)/g, '%29');
+}
+
+function firstImageForDestination(dest) {
+  const folder = destinationFolderFor(dest);
+  if (!folder) return '';
+  return `/images/${folder}/`;
+}
+
 function formatDate(iso) {
   if (!iso) return '—';
   const d = new Date(iso);
@@ -45,7 +82,8 @@ function renderTopbar() {
         <span class="flap">${esc(t('brand_tag'))}</span> GlobeTrotter
       </a>
       <nav class="nav">
-        <a href="#/" class="nav-link ${route.name === 'explore' ? 'active' : ''}" data-action="nav" data-hash="#/">${esc(t('nav_explore'))}</a>
+        <a href="#/" class="nav-link ${route.name === 'home' ? 'active' : ''}" data-action="nav" data-hash="#/">${esc(t('nav_home'))}</a>
+        <a href="#/explore" class="nav-link ${route.name === 'explore' ? 'active' : ''}" data-action="nav" data-hash="#/explore">${esc(t('nav_explore'))}</a>
         ${loggedIn ? `<a href="#/trips" class="nav-link ${route.name === 'trips' || route.name === 'trip-detail' ? 'active' : ''}" data-action="nav" data-hash="#/trips">${esc(t('nav_trips'))}</a>` : ''}
       </nav>
       <div class="top-actions">
@@ -62,6 +100,127 @@ function renderTopbar() {
       </div>
     </header>
   `;
+}
+
+/* ---------------- Home page ---------------- */
+const HOME_GALLERY = [
+  { url: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=800&q=80&auto=format&fit=crop', captionKey: 'home_gallery_1_caption' },
+  { url: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&q=80&auto=format&fit=crop', captionKey: 'home_gallery_2_caption' },
+  { url: 'https://images.unsplash.com/photo-1526392060635-9d6019884377?w=800&q=80&auto=format&fit=crop', captionKey: 'home_gallery_3_caption' },
+  { url: 'https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?w=800&q=80&auto=format&fit=crop', captionKey: 'home_gallery_4_caption' },
+];
+
+// ---------------------------------------------------------------------
+// CONFIG VIDÉO — modifie ce tableau pour utiliser tes propres vidéos.
+//
+// Deux types possibles pour chaque entrée :
+//
+// 1) type: 'youtube'  -> vidéo hébergée sur YouTube (rien à installer)
+//    id: l'identifiant de la vidéo, trouvable dans l'URL YouTube.
+//
+// 2) type: 'local'    -> ton propre fichier vidéo (.mp4)
+//    src: le chemin vers le fichier, placé dans frontend/public/video/
+//
+// caption : texte affiché à côté de la vidéo, décrivant le lieu.
+//           Renseigne { fr: '...', en: '...' } pour chaque vidéo.
+//
+// vertical : mets `true` si la vidéo est filmée en format portrait
+//            (cas de la plupart des vidéos TikTok/Instagram Reels).
+// ---------------------------------------------------------------------
+const HOME_VIDEOS = [
+  { type: 'local', src: '/video/video-1.mp4', vertical: true, caption: { fr: 'Kyoto, Japon', en: 'Kyoto, Japan' } },
+  { type: 'local', src: '/video/video-2.mp4', vertical: true, caption: { fr: 'Paris, France', en: 'Paris, France' } },
+  { type: 'local', src: '/video/video-3.mp4', vertical: true, caption: { fr: 'Grèce', en: 'Greece' } },
+  { type: 'local', src: '/video/video-4.mp4', vertical: true, caption: { fr: 'Maldives', en: 'Maldives' } },
+  { type: 'local', src: '/video/video-5.mp4', vertical: true, caption: { fr: 'Pérou', en: 'Peru' } },
+];
+
+function renderHomeVideo(video) {
+  const caption = video.caption ? (video.caption[getLang()] || video.caption.en || '') : '';
+  const shapeClass = video.vertical ? 'home-video-media-portrait' : 'home-video-media-landscape';
+
+  const mediaHtml = video.type === 'local'
+    ? `
+      <video controls preload="auto" ${video.poster ? `poster="${esc(video.poster)}"` : ''}>
+        <source src="${esc(video.src)}" type="video/mp4" />
+      </video>
+    `
+    : `
+      <iframe
+        src="https://www.youtube.com/embed/${esc(video.id)}"
+        title="Travel inspiration"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        loading="lazy"
+      ></iframe>
+    `;
+
+  return `
+    <article class="home-video-card">
+      <div class="home-video-media ${shapeClass}">${mediaHtml}</div>
+      ${caption ? `<p class="home-video-caption">${esc(caption)}</p>` : ''}
+    </article>
+  `;
+}
+
+const HOME_HIGHLIGHTS = [
+  { category: 'beach', icon: '🏖️' },
+  { category: 'mountain', icon: '⛰️' },
+  { category: 'city', icon: '🏙️' },
+  { category: 'culture', icon: '🏛️' },
+];
+
+function renderHome() {
+  const loggedIn = isLoggedIn();
+  app.innerHTML = layout(`
+    <section class="home-hero">
+      <div class="board-eyebrow">${esc(t('home_eyebrow'))}</div>
+      <h1 class="home-title">${esc(t('home_welcome_title'))}</h1>
+      <p class="home-sub">${esc(t('home_welcome_sub'))}</p>
+      <div class="home-cta-row">
+        <button class="btn btn-primary" data-action="nav" data-hash="#/explore">${esc(t('home_cta_explore'))}</button>
+        ${loggedIn ? `<button class="btn btn-secondary" data-action="nav" data-hash="#/trips">${esc(t('home_cta_trips'))}</button>` : ''}
+      </div>
+    </section>
+
+    <section class="home-section">
+      <div class="board-eyebrow">${esc(t('home_gallery_eyebrow'))}</div>
+      <h2 class="home-section-title">${esc(t('home_gallery_title'))}</h2>
+      <div class="home-gallery">
+        ${HOME_GALLERY.map(g => `
+          <figure class="home-gallery-item">
+            <img src="${g.url}" alt="${esc(t(g.captionKey))}" loading="lazy" />
+            <figcaption>${esc(t(g.captionKey))}</figcaption>
+          </figure>
+        `).join('')}
+      </div>
+    </section>
+
+    <section class="home-section">
+      <div class="board-eyebrow">${esc(t('home_video_eyebrow'))}</div>
+      <h2 class="home-section-title">${esc(t('home_video_title'))}</h2>
+      <p class="home-section-sub">${esc(t('home_video_sub'))}</p>
+      <div class="home-video-grid">
+        ${HOME_VIDEOS.map(renderHomeVideo).join('')}
+      </div>
+    </section>
+
+    <section class="home-section">
+      <h2 class="home-section-title">${esc(t('home_highlights_title'))}</h2>
+      <div class="home-highlights">
+        ${HOME_HIGHLIGHTS.map(h => `
+          <button class="home-highlight-card" data-action="explore-category" data-category="${h.category}">
+            <span class="home-highlight-icon">${h.icon}</span>
+            <span class="home-highlight-label">${esc(t('cat_' + h.category))}</span>
+            <span class="home-highlight-desc">${esc(t('home_highlight_' + h.category + '_desc'))}</span>
+          </button>
+        `).join('')}
+      </div>
+    </section>
+  `);
+
+  bindGlobalHandlers();
 }
 
 /* ---------------- Explore page ---------------- */
@@ -114,12 +273,21 @@ async function loadDestinations() {
   try {
     const data = await api.searchDestinations(state.filters);
     state.lastDestinations = data.destinations;
-    data.destinations.forEach(d => state.destCache.set(d.id, d));
-    if (data.destinations.length === 0) {
+    const destinations = data.destinations || [];
+
+    for (const d of destinations) {
+      state.destCache.set(d.id, d);
+      const folder = destinationFolderFor(d);
+      if (!folder) continue;
+      const images = await fetchFolderImages(folder);
+      d.cardImage = images.length ? `/images/${encodeURIComponent(folder)}/${encodeURIComponent(images[0])}` : '';
+    }
+
+    if (destinations.length === 0) {
       results.innerHTML = `<div class="empty-state"><h3>${esc(t('no_destinations'))}</h3><p>${esc(t('no_destinations_hint'))}</p></div>`;
       return;
     }
-    results.innerHTML = `<div class="dest-grid">${data.destinations.map(destCard).join('')}</div>`;
+    results.innerHTML = `<div class="dest-grid">${destinations.map(destCard).join('')}</div>`;
   } catch (e) {
     results.innerHTML = `<div class="alert alert-error">${esc(errorMessage(e))}</div>`;
   }
@@ -127,15 +295,21 @@ async function loadDestinations() {
 
 function destCard(d) {
   const inCart = state.cart.has(d.id);
+  const folder = destinationFolderFor(d);
+  const imageUrl = d.cardImage || '';
+  const style = imageUrl
+    ? `background-image: linear-gradient(180deg, rgba(11, 14, 23, 0.46), rgba(11, 14, 23, 0.74)), url('${imageUrl}'); background-size: cover; background-position: center; min-height: 330px;`
+    : '';
+
   return `
-    <article class="dest-card">
-      <div class="dest-card-top">
+    <article class="dest-card" style="${style}">
+      <button class="dest-card-top dest-card-top-link" data-action="nav" data-hash="#/destinations/${d.id}">
         <div>
           <p class="dest-name">${esc(d.name)}</p>
           <p class="dest-country">${esc(d.country)}</p>
         </div>
         <span class="dest-code">${codeFor(d.name)}</span>
-      </div>
+      </button>
       <p class="dest-desc">${esc(d.description || '')}</p>
       <div class="dest-meta">
         <span class="tag">${esc(t('cat_' + d.category))}</span>
@@ -143,12 +317,210 @@ function destCard(d) {
         <span class="tag">${esc(t('popularity'))} ${esc(d.popularity_score)}</span>
       </div>
       <div class="dest-actions">
+        <button class="btn btn-secondary btn-block btn-sm" data-action="nav" data-hash="#/destinations/${d.id}">${esc(t('view_details'))}</button>
         <button class="btn ${inCart ? 'btn-secondary' : 'btn-primary'} btn-block btn-sm" data-action="toggle-cart" data-id="${d.id}">
           ${inCart ? '✓ ' + esc(t('added')) : esc(t('add_to_trip'))}
         </button>
       </div>
     </article>
   `;
+}
+
+/* ---------------- Destination detail (galleries by zone) ---------------- */
+const MEDIA_CATEGORIES = ['landscape', 'hotel', 'culture'];
+let currentDestDetailId = null;
+
+async function renderDestinationDetail(id) {
+  currentDestDetailId = id;
+  if (!state.destDetailTab) state.destDetailTab = 'landscape';
+
+  app.innerHTML = layout(`<div class="empty-state"><span class="spinner"></span></div>`);
+  bindGlobalHandlers();
+
+  try {
+    const dest = await api.getDestination(id);
+    state.destCache.set(dest.id, dest);
+    paintDestinationDetail(dest.id);
+  } catch (e) {
+    app.innerHTML = layout(`
+      <button class="btn btn-ghost btn-sm" style="margin-bottom:18px" data-action="nav" data-hash="#/explore">${esc(t('dest_back_to_explore'))}</button>
+      <div class="alert alert-error">${e instanceof ApiError && e.status === 404 ? esc(t('dest_not_found')) : esc(errorMessage(e))}</div>
+    `);
+    bindGlobalHandlers();
+  }
+}
+
+async function paintDestinationDetail(id) {
+  const dest = state.destCache.get(Number(id));
+  if (!dest) return;
+
+  const activeTab = state.destDetailTab || 'landscape';
+  const media = dest.media || { landscape: [], hotel: [], culture: [] };
+  const activeItems = media[activeTab] || [];
+  const canAdmin = isLoggedIn() && getUser() && getUser().is_admin;
+  const folder = destinationFolderFor(dest);
+  const folderImages = folder ? await fetchFolderImages(folder) : [];
+  const staticGalleryHtml = folderImages.length > 0
+    ? renderStaticFolderCarousel(folder, folderImages, dest.name)
+    : '';
+
+  app.innerHTML = layout(`
+    <button class="btn btn-ghost btn-sm" style="margin-bottom:18px" data-action="nav" data-hash="#/explore">${esc(t('dest_back_to_explore'))}</button>
+
+    <section class="board-hero">
+      <div class="board-eyebrow">${esc(dest.country)} · ${esc(t('cat_' + dest.category))}</div>
+      <h1 class="board-title" style="font-size:clamp(28px,5vw,48px)">${esc(dest.name)}</h1>
+      <p class="board-sub">${esc(dest.description || '')}</p>
+    </section>
+
+    <div class="dest-detail-layout">
+      <div class="dest-detail-main">
+        <div class="tab-bar" role="tablist">
+          ${MEDIA_CATEGORIES.map(cat => `
+            <button class="tab-btn ${activeTab === cat ? 'active' : ''}" data-action="switch-dest-tab" data-category="${cat}" role="tab" aria-selected="${activeTab === cat}">
+              ${esc(t('dest_tab_' + cat))} <span class="tab-count">${(media[cat] || []).length}</span>
+            </button>
+          `).join('')}
+        </div>
+
+        <div id="dest-gallery">
+          ${staticGalleryHtml || (activeItems.length === 0
+            ? `<div class="empty-state"><p>${esc(t('dest_gallery_empty'))}</p></div>`
+            : `<div class="home-gallery">
+                ${activeItems.map(m => `
+                  <figure class="home-gallery-item dest-gallery-item">
+                    <img src="${esc(getApiBase() + m.url)}" alt="${esc(m.caption || dest.name)}" loading="lazy" />
+                    ${m.caption ? `<figcaption>${esc(m.caption)}</figcaption>` : ''}
+                    ${canAdmin ? `<button class="btn btn-danger btn-sm dest-media-delete" data-action="delete-media" data-media-id="${m.id}">${esc(t('dest_admin_delete'))}</button>` : ''}
+                  </figure>
+                `).join('')}
+              </div>`)
+          }
+        </div>
+
+        ${canAdmin ? `
+          <div class="admin-upload-card">
+            <h3>${esc(t('dest_admin_upload_title'))}</h3>
+            <div id="dest-upload-error"></div>
+            <form id="dest-upload-form">
+              <div class="field">
+                <label>${esc(t('dest_admin_upload_category'))}</label>
+                <select name="category">
+                  ${MEDIA_CATEGORIES.map(cat => `<option value="${cat}" ${cat === activeTab ? 'selected' : ''}>${esc(t('dest_tab_' + cat))}</option>`).join('')}
+                </select>
+              </div>
+              <div class="field">
+                <label>${esc(t('dest_admin_upload_caption'))}</label>
+                <input type="text" name="caption" placeholder="${esc(t('dest_admin_upload_caption_placeholder'))}" />
+              </div>
+              <div class="field">
+                <label>${esc(t('dest_admin_upload_file'))}</label>
+                <input type="file" name="file" accept="image/png,image/jpeg,image/webp,image/gif" required />
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">${esc(t('dest_admin_upload_submit'))}</button>
+            </form>
+          </div>
+        ` : ''}
+      </div>
+
+      <aside class="dest-detail-side">
+        <h3>${esc(t('dest_practical_info'))}</h3>
+        <dl class="info-list">
+          <dt>${esc(t('dest_country_label'))}</dt><dd>${esc(dest.country)}</dd>
+          <dt>${esc(t('dest_category_label'))}</dt><dd>${esc(t('cat_' + dest.category))}</dd>
+          <dt>${esc(t('dest_budget_label'))}</dt><dd>${esc(t('budget_' + dest.budget_level))}</dd>
+          <dt>${esc(t('dest_popularity_label'))}</dt><dd>${esc(dest.popularity_score)}</dd>
+        </dl>
+        <button class="btn ${state.cart.has(dest.id) ? 'btn-secondary' : 'btn-primary'} btn-block" data-action="toggle-cart" data-id="${dest.id}">
+          ${state.cart.has(dest.id) ? '✓ ' + esc(t('added')) : esc(t('add_to_trip'))}
+        </button>
+      </aside>
+    </div>
+  `);
+
+  bindGlobalHandlers();
+
+  if (folderImages.length > 0) {
+    initDestinationCarousel();
+  }
+
+  const uploadForm = document.getElementById('dest-upload-form');
+  if (uploadForm) {
+    uploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(uploadForm);
+      const file = fd.get('file');
+      const errBox = document.getElementById('dest-upload-error');
+      const submitBtn = uploadForm.querySelector('button[type="submit"]');
+      if (!file || file.size === 0) return;
+
+      errBox.innerHTML = '';
+      submitBtn.disabled = true;
+      submitBtn.textContent = t('dest_admin_upload_uploading');
+      try {
+        await api.uploadDestinationMedia(dest.id, fd.get('category'), file, fd.get('caption'));
+        const refreshed = await api.getDestination(dest.id);
+        state.destCache.set(dest.id, refreshed);
+        state.destDetailTab = fd.get('category');
+        paintDestinationDetail(dest.id);
+      } catch (err) {
+        errBox.innerHTML = `<div class="alert alert-error">${esc(errorMessage(err))}</div>`;
+        submitBtn.disabled = false;
+        submitBtn.textContent = t('dest_admin_upload_submit');
+      }
+    });
+  }
+}
+
+
+function renderStaticFolderCarousel(folder, images, destinationName) {
+  if (!images || images.length === 0) return '';
+  const safeFolder = encodeURIComponent(folder);
+  const slides = images.map((name, idx) => `
+    <figure class="dest-detail-slide ${idx === 0 ? 'active' : ''}" data-slide="${idx}">
+      <img src="/images/${safeFolder}/${encodeURIComponent(name)}" alt="${esc(destinationName)}" loading="lazy" />
+    </figure>
+  `).join('');
+
+  const dots = images.map((_, idx) => `<button class="dest-detail-dot ${idx === 0 ? 'active' : ''}" data-action="carousel-dot" data-index="${idx}"></button>`).join('');
+
+  return `<section class="dest-detail-carousel" aria-label="${esc(destinationName)} gallery">
+    <div class="dest-detail-carousel-frame">
+      <div class="dest-detail-carousel-track">${slides}</div>
+      <button class="dest-detail-arrow prev" data-action="carousel-prev" aria-label="Previous image">‹</button>
+      <button class="dest-detail-arrow next" data-action="carousel-next" aria-label="Next image">›</button>
+    </div>
+    <div class="dest-detail-carousel-dots">${dots}</div>
+  </section>`;
+}
+
+function initDestinationCarousel() {
+  const carousel = document.querySelector('.dest-detail-carousel');
+  if (!carousel) return;
+  const track = carousel.querySelector('.dest-detail-carousel-track');
+  const slides = Array.from(carousel.querySelectorAll('[data-slide]'));
+  const dots = Array.from(carousel.querySelectorAll('[data-action="carousel-dot"]'));
+  const nextBtn = carousel.querySelector('[data-action="carousel-next"]');
+  const prevBtn = carousel.querySelector('[data-action="carousel-prev"]');
+  let current = 0;
+  let startX = 0;
+
+  function showSlide(idx) {
+    if (slides.length === 0) return;
+    current = (idx + slides.length) % slides.length;
+    slides.forEach((s, i) => s.classList.toggle('active', i === current));
+    dots.forEach((dot, i) => dot.classList.toggle('active', i === current));
+  }
+
+  nextBtn?.addEventListener('click', () => showSlide(current + 1));
+  prevBtn?.addEventListener('click', () => showSlide(current - 1));
+  dots.forEach((dot) => dot.addEventListener('click', () => showSlide(Number(dot.dataset.index))));
+
+  carousel.addEventListener('touchstart', (e) => { startX = e.changedTouches[0].clientX; }, { passive: true });
+  carousel.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 40) showSlide(current + (dx < 0 ? 1 : -1));
+  }, { passive: true });
 }
 
 function renderCartBar() {
@@ -605,6 +977,9 @@ function errorMessage(e) {
 
 /* ---------------- Layout wrapper ---------------- */
 function layout(mainHtml) {
+  const route = currentRoute();
+  document.body.className = document.body.className.replace(/\bpage-\S+/g, '').trim();
+  document.body.classList.add('page-' + route.name);
   return `
     <div class="app-shell">
       ${renderTopbar()}
@@ -650,11 +1025,63 @@ function bindGlobalHandlers() {
         if (card) {
           const d = state.destCache.get(id);
           if (d) card.outerHTML = destCard(d);
+        } else if (currentDestDetailId != null && state.destCache.has(id)) {
+          // Le bouton "ajouter au voyage" de la page détail destination
+          // n'est pas dans une .dest-card : on repeint toute la fiche.
+          paintDestinationDetail(id);
         }
         renderCartBar();
       }
     }
     else if (action === 'clear-cart') { state.cart.clear(); renderCartBar(); document.querySelectorAll('.dest-card').forEach(c => {}); loadDestinations(); }
+    else if (action === 'switch-dest-tab') {
+      state.destDetailTab = el.dataset.category;
+      if (currentDestDetailId != null) paintDestinationDetail(currentDestDetailId);
+    }
+    else if (action === 'carousel-prev') {
+      const carousel = el.closest('.dest-detail-carousel');
+      const slides = Array.from(carousel.querySelectorAll('[data-slide]'));
+      const dots = Array.from(carousel.querySelectorAll('[data-action="carousel-dot"]'));
+      let current = slides.findIndex(s => s.classList.contains('active'));
+      if (current < 0) current = 0;
+      current = (current - 1 + slides.length) % slides.length;
+      slides.forEach((s, i) => s.classList.toggle('active', i === current));
+      dots.forEach((dot, i) => dot.classList.toggle('active', i === current));
+    }
+    else if (action === 'carousel-next') {
+      const carousel = el.closest('.dest-detail-carousel');
+      const slides = Array.from(carousel.querySelectorAll('[data-slide]'));
+      const dots = Array.from(carousel.querySelectorAll('[data-action="carousel-dot"]'));
+      let current = slides.findIndex(s => s.classList.contains('active'));
+      if (current < 0) current = 0;
+      current = (current + 1) % slides.length;
+      slides.forEach((s, i) => s.classList.toggle('active', i === current));
+      dots.forEach((dot, i) => dot.classList.toggle('active', i === current));
+    }
+    else if (action === 'carousel-dot') {
+      const carousel = el.closest('.dest-detail-carousel');
+      const slides = Array.from(carousel.querySelectorAll('[data-slide]'));
+      const dots = Array.from(carousel.querySelectorAll('[data-action="carousel-dot"]'));
+      const idx = Number(el.dataset.index);
+      slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+      dots.forEach((dot, i) => dot.classList.toggle('active', i === idx));
+    }
+    else if (action === 'delete-media') {
+      if (currentDestDetailId == null) return;
+      if (!confirm(t('dest_admin_delete_confirm'))) return;
+      const mediaId = el.dataset.mediaId;
+      api.deleteDestinationMedia(currentDestDetailId, mediaId)
+        .then(() => api.getDestination(currentDestDetailId))
+        .then((refreshed) => {
+          state.destCache.set(refreshed.id, refreshed);
+          paintDestinationDetail(refreshed.id);
+        })
+        .catch((err) => alert(errorMessage(err)));
+    }
+    else if (action === 'explore-category') {
+      state.filters.category = el.dataset.category;
+      navigate('#/explore');
+    }
     else if (action === 'open-new-trip') { openNewTripModal(); }
     else if (action === 'open-edit-trip') { openEditTripModal(el.dataset.id); }
     else if (action === 'open-share-trip') { openShareTripModal(el.dataset.id); }
@@ -665,13 +1092,16 @@ function bindGlobalHandlers() {
 /* ---------------- Router ---------------- */
 function currentRoute() {
   const hash = location.hash || '#/';
-  if (hash === '#/' || hash === '') return { name: 'explore' };
+  if (hash === '#/' || hash === '') return { name: 'home' };
+  if (hash === '#/explore') return { name: 'explore' };
   if (hash === '#/login') return { name: 'login' };
   if (hash === '#/register') return { name: 'register' };
   if (hash === '#/trips') return { name: 'trips' };
-  const m = hash.match(/^#\/trips\/(\d+)$/);
-  if (m) return { name: 'trip-detail', id: m[1] };
-  return { name: 'explore' };
+  const mTrip = hash.match(/^#\/trips\/(\d+)$/);
+  if (mTrip) return { name: 'trip-detail', id: mTrip[1] };
+  const mDest = hash.match(/^#\/destinations\/(\d+)$/);
+  if (mDest) return { name: 'destination-detail', id: mDest[1] };
+  return { name: 'home' };
 }
 
 function render() {
@@ -679,11 +1109,13 @@ function render() {
   const needsAuth = route.name === 'trips' || route.name === 'trip-detail';
   if (needsAuth && !isLoggedIn()) { location.hash = '#/login'; return; }
 
-  if (route.name === 'explore') renderExplore();
+  if (route.name === 'home') renderHome();
+  else if (route.name === 'explore') renderExplore();
   else if (route.name === 'login') renderLogin();
   else if (route.name === 'register') renderRegister();
   else if (route.name === 'trips') renderTrips();
   else if (route.name === 'trip-detail') renderTripDetail(route.id);
+  else if (route.name === 'destination-detail') renderDestinationDetail(route.id);
 }
 
 window.addEventListener('hashchange', render);
